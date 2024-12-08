@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { Task, TaskStatus } from "./task.model";
+import { Injectable, BadRequestException } from "@nestjs/common";
+import { Task, TaskSortBy, TaskStatus } from "./task.model";
 
 @Injectable()
 export class TasksService {
@@ -38,7 +38,28 @@ export class TasksService {
 
   getFilteredTasks(
     status?: TaskStatus,
-    page?: number,
-    limit?: number,
-  ): Task[] {}
+    page: number = 1,
+    limit: number = 5,
+    sortBy?: TaskSortBy,
+  ): Task[] {
+    if (page <= 0 || limit <= 0) {
+      throw new BadRequestException('pagination query must be positive');
+    }
+
+    let resTasks = [...this.tasks];
+    const startIdx = (page - 1) * limit;
+    const endIdx = startIdx + limit;
+
+    if (status) {
+      resTasks = resTasks.filter((task) => task.status === status)
+    }
+
+    resTasks = resTasks.slice(startIdx, endIdx);
+
+    if (sortBy) {
+      resTasks.sort((taskA, taskB) => taskA[sortBy].localeCompare(taskB[sortBy]));
+    }
+
+    return resTasks;
+  }
 }
