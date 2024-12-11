@@ -1,6 +1,6 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, ParseEnumPipe, ParseIntPipe, Query } from "@nestjs/common";
 import { TasksService } from "./tasks.service";
-import { TaskStatus } from "./task.model";
+import { TaskSortBy, TaskStatus } from "./task.model";
 
 @Controller("tasks")
 export class TasksController {
@@ -8,8 +8,11 @@ export class TasksController {
 
   @Get()
   getTasks(
-    @Query("status") status?: TaskStatus,
-    @Query("page") page?: number,
-    @Query("limit") limit?: number,
-  ) {}
+    @Query("status", new ParseEnumPipe(TaskStatus, { optional: true })) status?: TaskStatus,
+    @Query("page", new ParseIntPipe({ optional: true })) page?: number,
+    @Query("limit", new ParseIntPipe({ optional: true })) limit?: number,
+    @Query("sortBy", new ParseEnumPipe(TaskSortBy, { optional: true })) sortBy?: TaskSortBy,
+  ) {
+    return this.tasksService.getFilteredTasks(status, page, limit, sortBy);
+  }
 }
